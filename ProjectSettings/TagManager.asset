@@ -14,10 +14,10 @@ TagManager:
   - P1_Camera
   - P2_Camera
   - Player
-  - 
-  - 
-  - 
-  - 
+  - Player 1
+  - Player 2
+  - Background
+  - Foreground
   - 
   - 
   - 

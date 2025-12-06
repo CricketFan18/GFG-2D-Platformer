@@ -94,6 +94,7 @@ MonoBehaviour:
   camA:
     vCam: {fileID: 0}
     target: {fileID: 0}
+    secondaryTarget: {fileID: 0}
     deadZoneX: 2
     deadZoneY: 1.5
     boundsCollider: {fileID: 0}
@@ -101,11 +102,21 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 512
     collisionRadius: 0.3
+    rotationSpeed: 180
+    maxRotationAngle: 10
+    minZoom: 6
+    maxZoom: 14
+    zoomLerpSpeed: 4
+    shakeFrequency: 5
     confiner: {fileID: 0}
     composer: {fileID: 0}
+    noise: {fileID: 0}
+    mode: 0
+    lockOnTarget: {fileID: 0}
   camB:
     vCam: {fileID: 0}
     target: {fileID: 0}
+    secondaryTarget: {fileID: 0}
     deadZoneX: 2
     deadZoneY: 1.5
     boundsCollider: {fileID: 0}
@@ -113,8 +124,17 @@ MonoBehaviour:
       serializedVersion: 2
       m_Bits: 512
     collisionRadius: 0.3
+    rotationSpeed: 180
+    maxRotationAngle: 10
+    minZoom: 6
+    maxZoom: 14
+    zoomLerpSpeed: 4
+    shakeFrequency: 5
     confiner: {fileID: 0}
     composer: {fileID: 0}
+    noise: {fileID: 0}
+    mode: 0
+    lockOnTarget: {fileID: 0}
 --- !u!1 &2571066979466924500
 GameObject:
   m_ObjectHideFlags: 0
@@ -365,8 +385,8 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1800876290227106018}
   - {fileID: 6904480101495118920}
+  - {fileID: 1800876290227106018}
   - {fileID: 5942778285597649933}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
