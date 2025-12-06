@@ -57,7 +57,7 @@ public class PlayerControls : MonoBehaviour
 
     private void OnInteract(InputAction.CallbackContext context)
     {
-        Debug.Log("Pressed Down");
+        //Debug.Log("Pressed Down");
     }
 
     private void OnJump(InputAction.CallbackContext context)
@@ -65,17 +65,17 @@ public class PlayerControls : MonoBehaviour
         if (Mathf.Abs(rb.linearVelocity.y) < 0.01f) // Only jump if on ground
         {
             rb.linearVelocity = new Vector2(rb.linearVelocity.x, jumpForce);
-            Debug.Log(gameObject.name + " Jumped!");
+            //Debug.Log(gameObject.name + " Jumped!");
         }
     }
 
     private void OnSkill1(InputAction.CallbackContext context)
     {
-        Debug.Log("Skill 1 Active!");
+        //Debug.Log("Skill 1 Active!");
     }
 
     private void OnSkill2(InputAction.CallbackContext context)
     {
-        Debug.Log("Skill 2 Active!");
+        //Debug.Log("Skill 2 Active!");
     }
 }
