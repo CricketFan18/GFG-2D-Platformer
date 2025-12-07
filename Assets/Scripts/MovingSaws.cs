@@ -29,6 +29,11 @@ public class MovingSaws : ObstacleBase
 
     void Update()
     {
+        MoveSaw();
+    }
+
+    public void MoveSaw()
+    {
         if (isMoving == false || isStatic)
         {
             return;

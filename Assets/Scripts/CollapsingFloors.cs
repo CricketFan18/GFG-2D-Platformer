@@ -2,36 +2,19 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-/// <summary>
-/// Modular Platform Controller:
-/// - Inherits ObstacleBase (AffectPlayer is intentionally empty)
-/// - Alternating platform ownership
-/// - Owner landing → becomes solid for both players
-/// - Per-player stand timer → fall-through
-/// - Auto-reset / respawn-detected reset
-/// - Fully modular structure using regions
-/// </summary>
 [RequireComponent(typeof(Collider2D))]
-public class PlatformController : ObstacleBase
+public class CollapsingFloors : ObstacleBase
 {
-    #region --------- INSPECTOR FIELDS ---------
-
     [Header("Initial Ownership")]
     public bool solidForPlayer1Initially = true;
 
     [Header("Fall-through Settings")]
     public float fallThroughSeconds = 2f;
-    public float autoResetSeconds = 0f;   // 0 = disabled
+    public float autoResetSeconds = 0f;
 
     [Header("Player References")]
     public GameObject player1;
     public GameObject player2;
-
-    #endregion
-
-
-
-    #region --------- INTERNAL RUNTIME STATE ---------
 
     private Collider2D platformCollider;
 
@@ -52,14 +35,8 @@ public class PlatformController : ObstacleBase
     // respawn detection thresholds
     private const float TELEPORT_DIST = 1.0f;
     private const float RESPAWN_EPSILON = 0.2f;
-
     private Coroutine autoResetRoutine;
 
-    #endregion
-
-
-
-    #region --------- UNITY LIFECYCLE ---------
 
     private void Awake()
     {
@@ -78,20 +55,8 @@ public class PlatformController : ObstacleBase
         DetectRespawnTeleport();
     }
 
-    #endregion
-
-
-
-    #region --------- OBSTACLEBASE IMPLEMENTATION ---------
-
     // Platform is not meant to damage or knockback → empty
     public override void AffectPlayer(GameObject player) { }
-
-    #endregion
-
-
-
-    #region --------- COLLISION CALLBACK OVERRIDES ---------
 
     protected override void OnCollisionEnter2D(Collision2D collision)
     {
@@ -107,18 +72,6 @@ public class PlatformController : ObstacleBase
     {
         HandleExit(collision.collider);
     }
-
-    #endregion
-
-
-
-    //==============================================================
-    //                          MODULES
-    //==============================================================
-
-
-
-    #region --------- MODULE: INITIALIZATION ---------
 
     private void CacheComponents()
     {
@@ -152,12 +105,6 @@ public class PlatformController : ObstacleBase
         ApplyCollisionState(player1, p1Col, solidForP1);
         ApplyCollisionState(player2, p2Col, solidForP2);
     }
-
-    #endregion
-
-
-
-    #region --------- MODULE: COLLISION HANDLING ---------
 
     private void HandleEnter(Collider2D col)
     {
@@ -206,12 +153,6 @@ public class PlatformController : ObstacleBase
 
         ResetOrStartTimer(player);
     }
-
-    #endregion
-
-
-
-    #region --------- MODULE: STAND TIMER ---------
 
     private void UpdateStandingTimers()
     {
@@ -262,12 +203,6 @@ public class PlatformController : ObstacleBase
         standTimers[player] = 0f;
     }
 
-    #endregion
-
-
-
-    #region --------- MODULE: COLLISION APPLY ---------
-
     private void ApplyCollisionState(GameObject playerObj, Collider2D playerCol, bool solid)
     {
         if (!playerObj || !playerCol) return;
@@ -275,12 +210,6 @@ public class PlatformController : ObstacleBase
         // solid → collisions allowed (ignore=false)
         Physics2D.IgnoreCollision(playerCol, platformCollider, !solid);
     }
-
-    #endregion
-
-
-
-    #region --------- MODULE: RESPAWN DETECTION ---------
 
     private void DetectRespawnTeleport()
     {
@@ -302,12 +231,6 @@ public class PlatformController : ObstacleBase
 
         lastPos = current;
     }
-
-    #endregion
-
-
-
-    #region --------- MODULE: RESET ---------
 
     public void ResetToOriginal()
     {
@@ -332,12 +255,6 @@ public class PlatformController : ObstacleBase
         ResetToOriginal();
     }
 
-    #endregion
-
-
-
-    #region --------- MODULE: UTILITY ---------
-
     private GameObject GetOtherPlayer(GameObject p)
     {
         return p == player1 ? player2 : player1;
@@ -347,6 +264,4 @@ public class PlatformController : ObstacleBase
     {
         gameObject.SetActive(state);
     }
-
-    #endregion
 }

@@ -8,9 +8,6 @@ public class SpikeMech : ObstacleBase
     public GameObject ways;
     public Transform[] wayPoints;
     int pointIndex;
-    int pointCount;
-    int direction = 1;
-
     private void Awake()
     {
         wayPoints = new Transform[ways.transform.childCount];
@@ -22,7 +19,6 @@ public class SpikeMech : ObstacleBase
 
     private void Start()
     {
-        pointCount = wayPoints.Length;
         pointIndex = 1;
         targetPos = wayPoints[pointIndex].transform.position;
     }
@@ -60,17 +56,7 @@ public class SpikeMech : ObstacleBase
     }
     void NextPoint()
     {
-        if(pointIndex == pointCount - 1)
-        {
-            direction = -1;
-        }
-
-        if(pointIndex == 0)
-        {
-            direction = 1;
-        }
-
-        pointIndex += direction;
+        pointIndex = pointIndex == 1 ? 0 : 1;
         targetPos = wayPoints[pointIndex].transform.position;
     }
 }
