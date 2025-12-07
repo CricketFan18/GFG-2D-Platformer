@@ -56,4 +56,9 @@ public abstract class ObstacleBase : MonoBehaviour,IObstacle
             AffectPlayer(other.gameObject);
         }
     }
+    protected virtual void OnCollisionExit2D(Collision2D collision)
+    {
+        // Child classes can override this
+    }
+
 }

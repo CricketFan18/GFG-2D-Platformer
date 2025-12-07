@@ -617,7 +617,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 8
-  jumpForce: 15
+  jumpForce: 20
   moveRef: {fileID: -5125127819062436706, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   jumpRef: {fileID: 87748895215837550, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   skill_1Ref: {fileID: -1259929341364444540, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
@@ -1089,7 +1089,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   moveSpeed: 8
-  jumpForce: 15
+  jumpForce: 20
   moveRef: {fileID: 8934402495136676317, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   jumpRef: {fileID: 167409782414485519, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   skill_1Ref: {fileID: -7100364276599580583, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
