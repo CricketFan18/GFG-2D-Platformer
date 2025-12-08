@@ -17,230 +17,134 @@ public class CollapsingFloors : ObstacleBase
     public GameObject player2;
 
     private Collider2D platformCollider;
-
-    private Collider2D p1Col, p2Col;
+    private Collider2D p1Collider, p2Collider;
     private PlayerStats p1Stats, p2Stats;
 
-    // live solidity
     private bool solidForP1;
     private bool solidForP2;
-
-    // per-player standing timers
-    private Dictionary<GameObject, float> standTimers = new Dictionary<GameObject, float>();
-
-    // respawn detection helpers
-    private Vector2 p1LastPos, p2LastPos;
-    private bool hasP1Stats = false, hasP2Stats = false;
-
-    // respawn detection thresholds
-    private const float TELEPORT_DIST = 1.0f;
-    private const float RESPAWN_EPSILON = 0.2f;
+    private Dictionary<Collider2D, float> standTimers = new Dictionary<Collider2D, float>();
     private Coroutine autoResetRoutine;
 
+    private Vector2 p1LastPos, p2LastPos;
+    private const float TELEPORT_DIST = 1.0f;
+    private const float RESPAWN_EPSILON = 0.2f;
 
     private void Awake()
     {
-        CacheComponents();
-        InitializeOwnership();
+        platformCollider = GetComponent<Collider2D>();
+        CachePlayerComponents();
+        ResetStateVariables();
     }
 
     private void Start()
     {
-        ApplyInitialCollisionState();
+        SetCollision(p1Collider, solidForP1);
+        SetCollision(p2Collider, solidForP2);
     }
 
     private void Update()
     {
-        UpdateStandingTimers();
-        DetectRespawnTeleport();
+        ProcessStandTimers();
+        CheckRespawnTeleport();
     }
 
-    // Platform is not meant to damage or knockback → empty
     public override void AffectPlayer(GameObject player) { }
 
     protected override void OnCollisionEnter2D(Collision2D collision)
     {
-        HandleEnter(collision.collider);
+        Collider2D col = collision.collider;
+
+        // Logic: When the owner lands, the platform becomes solid for the OTHER player too
+        if (col == p1Collider)
+        {
+            if (solidForP1 && !solidForP2)
+            {
+                solidForP2 = true;
+                SetCollision(p2Collider, true);
+            }
+            standTimers[col] = 0f; // Start timer
+        }
+        else if (col == p2Collider)
+        {
+            if (solidForP2 && !solidForP1)
+            {
+                solidForP1 = true;
+                SetCollision(p1Collider, true);
+            }
+            standTimers[col] = 0f; // Start timer
+        }
     }
 
     private void OnCollisionStay2D(Collision2D collision)
     {
-        HandleStay(collision.collider);
+        // Ensure timer exists while standing
+        if ((collision.collider == p1Collider && solidForP1) || (collision.collider == p2Collider && solidForP2))
+        {
+            if (!standTimers.ContainsKey(collision.collider))
+                standTimers[collision.collider] = 0f;
+        }
     }
 
     protected override void OnCollisionExit2D(Collision2D collision)
     {
-        HandleExit(collision.collider);
-    }
-
-    private void CacheComponents()
-    {
-        platformCollider = GetComponent<Collider2D>();
-
-        if (player1)
+        // Stop tracking time if they leave
+        if (standTimers.ContainsKey(collision.collider))
         {
-            p1Col = player1.GetComponent<Collider2D>();
-            p1Stats = player1.GetComponent<PlayerStats>();
-            hasP1Stats = p1Stats != null;
-            p1LastPos = player1.transform.position;
-        }
-
-        if (player2)
-        {
-            p2Col = player2.GetComponent<Collider2D>();
-            p2Stats = player2.GetComponent<PlayerStats>();
-            hasP2Stats = p2Stats != null;
-            p2LastPos = player2.transform.position;
+            standTimers.Remove(collision.collider);
         }
     }
 
-    private void InitializeOwnership()
-    {
-        solidForP1 = solidForPlayer1Initially;
-        solidForP2 = !solidForPlayer1Initially;
-    }
-
-    private void ApplyInitialCollisionState()
-    {
-        ApplyCollisionState(player1, p1Col, solidForP1);
-        ApplyCollisionState(player2, p2Col, solidForP2);
-    }
-
-    private void HandleEnter(Collider2D col)
-    {
-        if (col == p1Col)
-            OnPlayerEnter(player1, ref solidForP1, ref solidForP2, p1Col, p2Col);
-
-        else if (col == p2Col)
-            OnPlayerEnter(player2, ref solidForP2, ref solidForP1, p2Col, p1Col);
-    }
-
-    private void HandleStay(Collider2D col)
-    {
-        if (col == p1Col && solidForP1)
-            EnsureTimerExists(player1);
-
-        else if (col == p2Col && solidForP2)
-            EnsureTimerExists(player2);
-    }
-
-    private void HandleExit(Collider2D col)
-    {
-        if (col == p1Col) standTimers.Remove(player1);
-        else if (col == p2Col) standTimers.Remove(player2);
-    }
-
-
-    private void OnPlayerEnter(
-        GameObject player,
-        ref bool solidForThisPlayer,
-        ref bool solidForOtherPlayer,
-        Collider2D thisCol,
-        Collider2D otherCol)
-    {
-        if (!solidForThisPlayer)
-        {
-            Physics2D.IgnoreCollision(thisCol, platformCollider, true);
-            return;
-        }
-
-        // Owner lands → make platform solid for both
-        if (solidForThisPlayer && !solidForOtherPlayer)
-        {
-            solidForOtherPlayer = true;
-            ApplyCollisionState(GetOtherPlayer(player), otherCol, true);
-        }
-
-        ResetOrStartTimer(player);
-    }
-
-    private void UpdateStandingTimers()
+    private void ProcessStandTimers()
     {
         if (standTimers.Count == 0) return;
+        var activeColliders = new List<Collider2D>(standTimers.Keys);
 
-        var keys = new List<GameObject>(standTimers.Keys);
-
-        foreach (var p in keys)
+        foreach (var col in activeColliders)
         {
-            standTimers[p] += Time.deltaTime;
+            standTimers[col] += Time.deltaTime;
 
-            if (standTimers[p] >= fallThroughSeconds)
+            if (standTimers[col] >= fallThroughSeconds)
             {
-                TriggerFallThrough(p);
-                standTimers.Remove(p);
+                DisableForPlayer(col);
+                standTimers.Remove(col);
 
                 if (autoResetSeconds > 0)
                 {
                     if (autoResetRoutine != null) StopCoroutine(autoResetRoutine);
-                    autoResetRoutine = StartCoroutine(AutoReset(autoResetSeconds));
+                    autoResetRoutine = StartCoroutine(AutoResetRoutine());
                 }
             }
         }
     }
 
-    private void TriggerFallThrough(GameObject player)
+    private void DisableForPlayer(Collider2D col)
     {
-        if (player == player1 && solidForP1)
+        if (col == p1Collider)
         {
             solidForP1 = false;
-            ApplyCollisionState(player1, p1Col, false);
+            SetCollision(p1Collider, false);
         }
-        else if (player == player2 && solidForP2)
+        else if (col == p2Collider)
         {
             solidForP2 = false;
-            ApplyCollisionState(player2, p2Col, false);
+            SetCollision(p2Collider, false);
         }
     }
-
-    private void EnsureTimerExists(GameObject player)
+    private void SetCollision(Collider2D playerCol, bool isSolid)
     {
-        if (!standTimers.ContainsKey(player))
-            standTimers.Add(player, 0f);
-    }
-
-    private void ResetOrStartTimer(GameObject player)
-    {
-        standTimers[player] = 0f;
-    }
-
-    private void ApplyCollisionState(GameObject playerObj, Collider2D playerCol, bool solid)
-    {
-        if (!playerObj || !playerCol) return;
-
-        // solid → collisions allowed (ignore=false)
-        Physics2D.IgnoreCollision(playerCol, platformCollider, !solid);
-    }
-
-    private void DetectRespawnTeleport()
-    {
-        if (hasP1Stats) CheckRespawn(player1, ref p1LastPos, p1Stats.respawnPoint);
-        if (hasP2Stats) CheckRespawn(player2, ref p2LastPos, p2Stats.respawnPoint);
-    }
-
-    private void CheckRespawn(GameObject player, ref Vector2 lastPos, Vector2 respawnPoint)
-    {
-        Vector2 current = player.transform.position;
-
-        float moved = Vector2.Distance(current, lastPos);
-        float distToRespawn = Vector2.Distance(current, respawnPoint);
-
-        if (moved > TELEPORT_DIST && distToRespawn <= RESPAWN_EPSILON)
+        if (playerCol != null)
         {
-            ResetToOriginal();
+            Physics2D.IgnoreCollision(playerCol, platformCollider, !isSolid);
         }
-
-        lastPos = current;
     }
 
     public void ResetToOriginal()
     {
         standTimers.Clear();
+        ResetStateVariables();
 
-        solidForP1 = solidForPlayer1Initially;
-        solidForP2 = !solidForPlayer1Initially;
-
-        ApplyCollisionState(player1, p1Col, solidForP1);
-        ApplyCollisionState(player2, p2Col, solidForP2);
+        SetCollision(p1Collider, solidForP1);
+        SetCollision(p2Collider, solidForP2);
 
         if (autoResetRoutine != null)
         {
@@ -249,15 +153,56 @@ public class CollapsingFloors : ObstacleBase
         }
     }
 
-    private IEnumerator AutoReset(float time)
+    private void ResetStateVariables()
     {
-        yield return new WaitForSeconds(time);
+        solidForP1 = solidForPlayer1Initially;
+        solidForP2 = !solidForPlayer1Initially;
+    }
+
+    private IEnumerator AutoResetRoutine()
+    {
+        yield return new WaitForSeconds(autoResetSeconds);
         ResetToOriginal();
     }
 
-    private GameObject GetOtherPlayer(GameObject p)
+    private void CheckRespawnTeleport()
     {
-        return p == player1 ? player2 : player1;
+        CheckSinglePlayerRespawn(player1, p1Stats, ref p1LastPos);
+        CheckSinglePlayerRespawn(player2, p2Stats, ref p2LastPos);
+    }
+
+    private void CheckSinglePlayerRespawn(GameObject player, PlayerStats stats, ref Vector2 lastPos)
+    {
+        if (player == null || stats == null) return;
+
+        Vector2 currentPos = player.transform.position;
+        float distMoved = Vector2.Distance(currentPos, lastPos);
+        float distToRespawn = Vector2.Distance(currentPos, stats.respawnPoint);
+
+        // If moved significantly in one frame AND landed exactly at respawn point
+        if (distMoved > TELEPORT_DIST && distToRespawn <= RESPAWN_EPSILON)
+        {
+            ResetToOriginal();
+        }
+
+        lastPos = currentPos;
+    }
+
+    private void CachePlayerComponents()
+    {
+        if (player1)
+        {
+            p1Collider = player1.GetComponent<Collider2D>();
+            p1Stats = player1.GetComponent<PlayerStats>();
+            p1LastPos = player1.transform.position;
+        }
+
+        if (player2)
+        {
+            p2Collider = player2.GetComponent<Collider2D>();
+            p2Stats = player2.GetComponent<PlayerStats>();
+            p2LastPos = player2.transform.position;
+        }
     }
 
     public override void ToggleActive(bool state)

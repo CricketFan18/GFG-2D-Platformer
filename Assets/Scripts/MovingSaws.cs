@@ -2,74 +2,78 @@ using UnityEngine;
 
 public class MovingSaws : ObstacleBase
 {
-    public Vector2 targetPosition;
-    public bool targetInWorldSpace = false;
+    [Header("Movement Settings")]
+    [Tooltip("If true, the saw starts moving immediately on Start.")]
+    public bool moveOnStart = true;
+    public float moveSpeed = 10f;
     public bool oscillate = true;
-    public float moveSpeed = 10;
-    public float waitAtEnd = 0;
+
+    [Header("Path Settings")]
+    public Vector2 targetOffset;
+    public bool useWorldSpace = false;
+    public float waitAtEnds = 0f;
     public float reachThreshold = 0.05f;
 
-    public bool isStatic = true;
-    public Transform activationTrigger;
+    private Vector2 startPos;
+    private Vector2 finalPos;
+    private Vector2 currentTarget;
 
-    Vector2 startPos;
-    Vector2 finalPos;
-    bool isMoving = false;
-    bool reachedTarget = false;
-    float waitCounter = 0f;
+    private bool isMoving = false;
+    private float waitTimer = 0f;
+    private bool movingToFinalPos = true;
 
-    void Start()
+    private void Start()
+    {
+        InitializePath();
+
+        if (moveOnStart)
+        {
+            isMoving = true;
+        }
+    }
+
+    private void Update()
+    {
+        HandleMovement();
+    }
+
+    private void InitializePath()
     {
         startPos = transform.position;
-
-        finalPos = (targetInWorldSpace)?  targetPosition : startPos + targetPosition;
-
-        isMoving = isStatic;
+        finalPos = useWorldSpace ? targetOffset : startPos + targetOffset;
+        currentTarget = finalPos;
+        movingToFinalPos = true;
     }
 
-    void Update()
+    private void HandleMovement()
     {
-        MoveSaw();
+        if (!isMoving) return;
+        if (waitTimer > 0)
+        {
+            waitTimer -= Time.deltaTime;
+            return;
+        }
+        transform.position = Vector2.MoveTowards(transform.position, currentTarget, moveSpeed * Time.deltaTime);
+        if (Vector2.Distance(transform.position, currentTarget) <= reachThreshold)
+        {
+            OnTargetReached();
+        }
     }
 
-    public void MoveSaw()
+    private void OnTargetReached()
     {
-        if (isMoving == false || isStatic)
+        if (waitAtEnds > 0)
         {
-            return;
+            waitTimer = waitAtEnds;
         }
-
-        if (waitCounter > 0)
+        if (oscillate) // Flip direction
         {
-            waitCounter = waitCounter - Time.deltaTime;
-            return;
+            movingToFinalPos = !movingToFinalPos;
+            currentTarget = movingToFinalPos ? finalPos : startPos;
         }
-
-        Vector2 currentPosition = transform.position;
-        Vector2 destination;
-
-        destination = (reachedTarget)? finalPos : startPos;
-
-        Vector2 newp = Vector2.MoveTowards(currentPosition, destination, moveSpeed * Time.deltaTime);
-        transform.position = newp;
-
-        float distance = Vector2.Distance(newp, destination);
-
-        if (distance <= reachThreshold)
+        else  // Stop if not oscillating
         {
-            if (waitAtEnd > 0)
-            {
-                waitCounter = waitAtEnd;
-            }
-
-            if (oscillate == true)
-            {
-                reachedTarget = !reachedTarget;
-            }
-            else
-            {
-                isMoving = false;
-            }
+            isMoving = false;
         }
     }
 
@@ -80,15 +84,26 @@ public class MovingSaws : ObstacleBase
         {
             ps.TakeDamage(damage);
         }
-
-        // ps.transform.position = new Vector3(8, -4.8f, 0); //TODO: Respawn to Checkpoint
     }
 
-    public override void ToggleActive(bool s)
+    public override void ToggleActive(bool state) // This allows external scripts (like triggers/buttons) to start/stop the saw
     {
-        base.ToggleActive(s);
-        isMoving = s;
+        base.ToggleActive(state);
+        isMoving = state;
+    }
+
+    // ---------------------------------------------------------
+    // EDITOR VISUALIZATION
+    // ---------------------------------------------------------
+    private void OnDrawGizmosSelected()
+    {
+        // Visualize the path in the Editor so you don't have to guess
+        Gizmos.color = Color.red;
+        Vector2 from = Application.isPlaying ? startPos : (Vector2)transform.position;
+        Vector2 to = useWorldSpace ? targetOffset : from + targetOffset;
+
+        Gizmos.DrawLine(from, to);
+        Gizmos.DrawWireSphere(to, 0.2f); // Draw circle at destination
+        Gizmos.DrawWireSphere(from, 0.2f); // Draw circle at start
     }
 }
-
-
