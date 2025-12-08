@@ -12,16 +12,15 @@ public class PlayerStats : MonoBehaviour
 
     private PlayerControls movementScript;
     private SpriteRenderer spriteRenderer;
+    private Color initialColor;
 
     void Start()
     {
         currentHealth = maxHealth;
-
-        // Assume we start where we placed them in the scene
-        respawnPoint = transform.position;
-
+        respawnPoint = transform.position; // Assume we start where we placed them in the scene
         movementScript = GetComponent<PlayerControls>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        initialColor = spriteRenderer.color;
     }
 
     public void TakeDamage(int damage)
@@ -46,19 +45,13 @@ public class PlayerStats : MonoBehaviour
 
     public void Respawn()
     {
-        // 1. Reset Health
         currentHealth = maxHealth;
-
-        // 2. Teleport back to start (or last checkpoint)
         transform.position = respawnPoint;
-
-        // 3. Reset Physics (Stop them from flying if they died mid-air)
-        Rigidbody2D rb = GetComponent<Rigidbody2D>();
+        Rigidbody2D rb = GetComponent<Rigidbody2D>(); // Reset Physics (Stop them from flying if they died mid-air)
         if (rb != null) rb.linearVelocity = Vector2.zero;
     }
 
-    // function to update the respawn point when touching a Checkpoint
-    public void SetRespawnPoint(Vector2 newPoint)
+    public void SetRespawnPoint(Vector2 newPoint) // function to update the respawn point when touching a Checkpoint
     {
         respawnPoint = newPoint;
     }
@@ -69,7 +62,7 @@ public class PlayerStats : MonoBehaviour
         {
             spriteRenderer.color = Color.red;
             yield return new WaitForSeconds(0.1f);
-            spriteRenderer.color = Color.white; // Or whatever your original color was
+            spriteRenderer.color = initialColor;
         }
     }
 }
