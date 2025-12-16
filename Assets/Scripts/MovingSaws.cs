@@ -80,10 +80,19 @@ public class MovingSaws : ObstacleBase
     public override void AffectPlayer(GameObject player)
     {
         PlayerStats ps = player.GetComponent<PlayerStats>();
+        Rigidbody2D rb = player.GetComponent<Rigidbody2D>();
         if (ps != null)
         {
             ps.TakeDamage(damage);
         }
+
+        if (rb)
+        {
+            Vector2 pushDir = (player.transform.position - transform.position).normalized;
+            rb.linearVelocity = Vector2.zero;
+            rb.AddForce(pushDir * knockbackForce, ForceMode2D.Impulse);
+        }
+        
     }
 
     public override void ToggleActive(bool state) // This allows external scripts (like triggers/buttons) to start/stop the saw
