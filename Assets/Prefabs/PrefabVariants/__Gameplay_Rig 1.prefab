@@ -462,6 +462,7 @@ GameObject:
   - component: {fileID: 3404893787825223315}
   - component: {fileID: 6793923399748275917}
   - component: {fileID: 3618667913880394417}
+  - component: {fileID: 5686555982493390424}
   m_Layer: 8
   m_Name: Player2
   m_TagString: Untagged
@@ -622,6 +623,20 @@ MonoBehaviour:
   skill_1Ref: {fileID: -1259929341364444540, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   skill_2Ref: {fileID: -6717813303415913231, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   interactRef: {fileID: -5801885343900025851, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
+--- !u!114 &5686555982493390424
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3506638380495745392}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 647e3d74f62b58b488b0d450e96d4863, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  respawnPoint: {x: 0, y: 0}
 --- !u!1 &4728251992895819854
 GameObject:
   m_ObjectHideFlags: 0
@@ -919,6 +934,7 @@ GameObject:
   - component: {fileID: 2613836942550874546}
   - component: {fileID: 4315466807454366424}
   - component: {fileID: 7434170532404071368}
+  - component: {fileID: 7255575976568549169}
   m_Layer: 8
   m_Name: Player1
   m_TagString: Untagged
@@ -1079,6 +1095,20 @@ MonoBehaviour:
   skill_1Ref: {fileID: -7100364276599580583, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   skill_2Ref: {fileID: 3215763226362732505, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
   interactRef: {fileID: 319228294474507302, guid: 81de7e01e6560344490f3c13775ef340, type: 3}
+--- !u!114 &7255575976568549169
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7727625822171309488}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 647e3d74f62b58b488b0d450e96d4863, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxHealth: 3
+  respawnPoint: {x: 0, y: 0}
 --- !u!1 &8600961682857736259
 GameObject:
   m_ObjectHideFlags: 0

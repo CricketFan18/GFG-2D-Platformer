@@ -6,6 +6,7 @@ public class PlayerControls : MonoBehaviour
     [Header("Movement Settings")]
     public float moveSpeed = 5f;
     public float jumpForce = 5f;
+    public float interactRadius = 1.5f;
     private Rigidbody2D rb;
     private Vector2 moveDirection;
 
@@ -15,6 +16,8 @@ public class PlayerControls : MonoBehaviour
     public InputActionReference skill_1Ref;
     public InputActionReference skill_2Ref;
     public InputActionReference interactRef;
+    [HideInInspector] public bool wallJumping = false;
+    [HideInInspector] public bool attachedToWall = false;
 
     private void Awake()
     {
@@ -52,12 +55,21 @@ public class PlayerControls : MonoBehaviour
 
     void FixedUpdate()
     {
-        rb.linearVelocity = new Vector2(moveDirection.x * moveSpeed, rb.linearVelocity.y);
+        if(!wallJumping && !attachedToWall) rb.linearVelocity = new Vector2(moveDirection.x * moveSpeed, rb.linearVelocity.y);
+        if(rb.linearVelocity.y < 0.2f) wallJumping = false;
     }
 
     private void OnInteract(InputAction.CallbackContext context)
     {
-        //Debug.Log("Pressed Down");
+        Collider2D[] overlappingColliders = Physics2D.OverlapCircleAll(transform.position, interactRadius);
+        foreach (Collider2D col in overlappingColliders)
+        {
+            InteractableObject obj = col.GetComponent<InteractableObject>();
+            if (obj)
+            {
+                obj.Interact();
+            }
+        }
     }
 
     private void OnJump(InputAction.CallbackContext context)
