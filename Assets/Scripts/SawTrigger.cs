@@ -2,7 +2,7 @@ using UnityEngine;
 
 public class SawTrigger : MonoBehaviour
 {
-    public MovingSaws saw;
+    public ObstacleBase saw;
 
     void OnTriggerEnter2D(Collider2D col)
     {
