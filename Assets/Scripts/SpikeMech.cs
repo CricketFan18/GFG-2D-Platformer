@@ -10,6 +10,7 @@ public class SpikeMech : ObstacleBase
     [Header("Path References")]
     [Tooltip("Drag the parent GameObject holding the waypoint transforms here.")]
     public Transform pathContainer;
+    public bool startOnAwake = true;
 
     private Transform[] wayPoints;
     private int targetIndex = 0;
@@ -18,6 +19,7 @@ public class SpikeMech : ObstacleBase
     private void Awake()
     {
         InitializePath();
+        ToggleActive(startOnAwake);
     }
 
     private void Start()
